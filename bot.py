@@ -26,6 +26,9 @@ from aiogram.enums import ChatType
 from asyncio import Task
 import logging
 from aiogram.exceptions import TelegramServerError
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
 
 # 1. Настройка Flask для Render (чтобы хостинг не отключал бота)
 app = Flask('')
@@ -125,12 +128,21 @@ class GameStates(StatesGroup):
 
 
 def load_facts() -> list:
-    # Берём папку, в которой лежит сам bot.py
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, "estimation_facts_100_ru.json")
+    file_path = BASE_DIR / "estimation_facts_100_ru.json"
     
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    if not file_path.exists():
+        print(f"❌ Файл фактов не найден: {file_path}")
+        print(f"Содержимое папки: {list(BASE_DIR.iterdir())}")
+        return []
+    
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        print(f"✅ Загружено {len(data)} фактов")
+        return data
+    except Exception as e:
+        print(f"❌ Ошибка загрузки фактов: {e}")
+        return []
 
 
 
@@ -334,36 +346,23 @@ async def cmd_stop_fact(message: Message):
 
 
 def load_jokes():
-    """Загружает анекдоты, разделённые пустыми строками"""
     global Jokes
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    cache_file = os.path.join(script_dir, "full_jokes.txt")
-
+    cache_file = BASE_DIR / "jokes.txt"
+    
     print(f"Ищу файл шуток: {cache_file}")
-
-    if not os.path.exists(cache_file):
+    
+    if not cache_file.exists():
         print(f"❌ Файл не найден: {cache_file}")
         Jokes = set()
         return
-
+    
     try:
-        with open(cache_file, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Разбиваем по пустым строкам (одна или несколько)
+        content = cache_file.read_text(encoding="utf-8")
         raw_jokes = content.split("\n\n")
-
-        Jokes = set()
-        for joke in raw_jokes:
-            cleaned = joke.strip()          # убираем лишние пробелы и переносы по краям
-            if cleaned:                     # пропускаем совсем пустые
-                Jokes.add(cleaned)
-
+        Jokes = {joke.strip() for joke in raw_jokes if joke.strip()}
         print(f"✅ Загружено {len(Jokes)} анекдотов")
-
     except Exception as e:
-        print(f"❌ Ошибка чтения файла: {e}")
+        print(f"❌ Ошибка чтения файла шуток: {e}")
         Jokes = set()
 
 # ---------- Загрузка фактов ----------
@@ -378,20 +377,16 @@ def load_facts() -> list:
 FACTS = load_facts()          # ← эта строка обязательно должна быть
 
 def load_cities_db():
-    """Скачивает и загружает базу городов мира (GeoNames)"""
     global CITIES_DB
+    cache_file = BASE_DIR / "cities_cache.txt"
     
-    cache_file = "cities_cache.txt"
-    
-    # Если уже есть кэш — читаем его
-    if os.path.exists(cache_file):
+    if cache_file.exists():
         print("Загружаю города из кэша...")
-        with open(cache_file, "r", encoding="utf-8") as f:
-            CITIES_DB = {line.strip().lower() for line in f if line.strip()}
-        print(f"Загружено {len(CITIES_DB)} городов")
+        CITIES_DB = {line.strip().lower() for line in cache_file.read_text(encoding="utf-8").splitlines() if line.strip()}
+        print(f"✅ Загружено {len(CITIES_DB)} городов из кэша")
         return
 
-    print("Скачиваю базу городов мира...")
+    print("Кэша нет. Пытаюсь скачать базу городов...")
     
     # Можно поставить cities5000.zip (больше городов) или cities15000.zip
     url = "https://download.geonames.org/export/dump/cities5000.zip"
