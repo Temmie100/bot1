@@ -1106,19 +1106,21 @@ async def check_win(chat_id: int) -> bool:
 
 @router.message(Command("sent"))
 async def admin_send(message: Message, command: CommandObject):
-    """Отправить сообщение в группу. Использование: /send текст"""
+    await message.answer(f"✅ Команда /sent дошла до обработчика\nТвой ID: {message.from_user.id}")
+    
     if message.from_user.id != ADMIN_ID:
+        await message.answer("Нет доступа")
         return
-    
+
     if not command.args:
-        await message.reply("Использование: /send текст сообщения")
+        await message.answer("Напиши текст после команды:\n/sent Привет всем")
         return
-    
+
     try:
         await bot.send_message(GROUP_ID, command.args)
-        await message.reply("✅ Отправлено в группу")
+        await message.answer("✅ Сообщение отправлено в группу")
     except Exception as e:
-        await message.reply(f"❌ Ошибка: {e}")
+        await message.answer(f"❌ Ошибка при отправке:\n{e}")
         
 @router.message(Command("sentid"))
 async def admin_send_id(message: Message, command: CommandObject):
