@@ -18,7 +18,6 @@ import requests
 from aiogram.filters import Filter
 import json
 from aiogram.filters import CommandObject
-from neurobot import SimpleNeuroBot
 from dataclasses import dataclass, field
 from typing import Dict, Set, Optional
 from aiogram import Router
