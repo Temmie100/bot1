@@ -24,6 +24,8 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.enums import ChatType
 from asyncio import Task
+import logging
+from aiogram.exceptions import TelegramServerError
 
 # 1. Настройка Flask для Render (чтобы хостинг не отключал бота)
 app = Flask('')
@@ -1157,15 +1159,15 @@ async def admin_send_id(message: Message, command: CommandObject):
 
 
 
-# Обработчик команды /start на aiogram
-@router.message(CommandStart())
-async def start_command(message: Message):
-    await message.reply("Привет! Я работаю круглосуточно на Render!")
+
 
 async def main():
-    print("Бот запускается...")
-    # Запускаем чтение обновлений Telegram
-    await dp.start_polling(bot, skip_updates=True)
+    while True:
+        try:
+            await dp.start_polling(bot, skip_updates=True)
+        except TelegramServerError as e:
+            logging.error(f"Ошибка сервера Telegram: {e}. Перезапуск через 5 секунд...")
+            await asyncio.sleep(5)
 
 if __name__ == "__main__":
     # Запускаем веб-сервер Flask в отдельном потоке для Render
