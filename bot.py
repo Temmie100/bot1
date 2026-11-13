@@ -365,16 +365,9 @@ def load_jokes():
         print(f"❌ Ошибка чтения файла шуток: {e}")
         Jokes = set()
 
-# ---------- Загрузка фактов ----------
-def load_facts() -> list:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, "estimation_facts_100_ru.json")
-    
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 
-FACTS = load_facts()          # ← эта строка обязательно должна быть
+
 
 def load_cities_db():
     global CITIES_DB
@@ -1152,7 +1145,9 @@ async def admin_send_id(message: Message, command: CommandObject):
     except Exception as e:
         await message.reply(f"❌ Ошибка: {e}")
 
-
+FACTS = load_facts()
+load_jokes()
+load_cities_db()
 
 
 
