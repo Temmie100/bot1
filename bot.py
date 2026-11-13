@@ -1155,7 +1155,7 @@ async def admin_send_id(message: Message, command: CommandObject):
     except Exception as e:
         await message.reply(f"❌ Ошибка: {e}")
 
-dp.include_router(router)
+
 
 # Обработчик команды /start на aiogram
 @router.message(CommandStart())
