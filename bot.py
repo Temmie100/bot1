@@ -469,7 +469,7 @@ async def cmd_jaloba(message: types.Message, command: CommandObject):
 
     target_username = command.args.strip()
 
-    if target_username.lower == "moi_user_temmie":
+    if target_username.lower == "@moi_user_temmie":
         await message.answer("такого человека нельзя на кол")
         return
 
